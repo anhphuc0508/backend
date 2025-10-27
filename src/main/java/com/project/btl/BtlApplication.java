@@ -1,7 +1,5 @@
 package com.project.btl;
 
-import com.project.btl.model.ERole;
-import com.project.btl.model.Role;
 import com.project.btl.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
