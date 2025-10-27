@@ -36,15 +36,19 @@ public class SecurityConfig {
                         // === API công khai (Không cần token) ===
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+                        // BỔ SUNG: API public cho Banner
+                        .requestMatchers(HttpMethod.GET, "/api/v1/banners/active").permitAll()
 
                         // === API cần xác thực (Phải có token) ===
                         .requestMatchers("/api/v1/orders/**").authenticated()
 
                         // === API cần quyền ADMIN ===
-                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAuthority("ADMIN")
-                        // (Bạn có thể thêm các API admin khác ở đây)
+                        // SỬA: Thêm tiền tố "ROLE_" để khớp với getAuthorities() trong User.java
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAuthority("ROLE_ADMIN")
+                        // BỔ SUNG: API admin cho Banner
+                        .requestMatchers("/api/v1/banners/admin/**").hasAuthority("ROLE_ADMIN")
 
                         .anyRequest().authenticated() // Tất cả các API còn lại đều cần xác thực
                 )
@@ -52,7 +56,6 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Không dùng session
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Thêm filter JWT
-
         return http.build();
     }
 

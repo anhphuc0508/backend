@@ -18,10 +18,12 @@ public class CreateProductRequest {
     private String description;
 
     @NotNull(message = "ID danh mục không được để trống")
-    private Long categoryId; // <- SỬA TỪ INTEGER THÀNH LONG
+    // SỬA: Đổi từ Long sang Integer để khớp với Category.java
+    private Integer categoryId;
 
     @NotNull(message = "ID thương hiệu không được để trống")
-    private Long brandId; // <- SỬA TỪ INTEGER THÀNH LONG
+    // SỬA: Đổi từ Long sang Integer để khớp với Brand.java
+    private Integer brandId;
 
     @Valid
     @NotEmpty(message = "Sản phẩm phải có ít nhất 1 biến thể")

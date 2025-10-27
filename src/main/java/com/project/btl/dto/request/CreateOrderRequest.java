@@ -19,8 +19,9 @@ public class CreateOrderRequest {
     @NotBlank(message = "Số điện thoại không được để trống")
     private String shippingPhoneNumber;
 
-    @Email(message = "Email không hợp lệ")
-    private String guestEmail; // Có thể null nếu user đã đăng nhập
+    // SỬA: Xóa bỏ guestEmail vì logic hiện tại bắt buộc đăng nhập (authenticated)
+    // @Email(message = "Email không hợp lệ")
+    // private String guestEmail; // Có thể null nếu user đã đăng nhập
 
     // Địa chỉ giao hàng
     @NotBlank(message = "Địa chỉ không được để trống")

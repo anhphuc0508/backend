@@ -1,7 +1,7 @@
 // File: com/project/btl/BtlApplication.java
 package com.project.btl;
 
-import com.project.btl.model.entity.Role; // Sửa import
+import com.project.btl.model.entity.Role; // BỔ SUNG import
 import com.project.btl.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -16,12 +16,14 @@ public class BtlApplication {
     }
 
     // --- SỬA LẠI BEAN NÀY ---
+    // Bean này sẽ chạy khi ứng dụng khởi động
+    // Nó kiểm tra và thêm 2 role USER và ADMIN vào DB
     @Bean
     CommandLineRunner initRoles(RoleRepository roleRepository) {
         return args -> {
             try {
-                // 1. Dùng findByRoleName (giống như trong Repository)
-                // 2. Dùng chuỗi "USER" và "ADMIN" (giống như trong AuthService)
+                // SỬA: Dùng findByRoleName (khớp với Repository)
+                // SỬA: Dùng chuỗi "USER" và "ADMIN" (khớp với AuthService)
                 if (roleRepository.findByRoleName("USER").isEmpty()) {
                     Role userRole = new Role();
                     userRole.setRoleName("USER"); // Sửa
