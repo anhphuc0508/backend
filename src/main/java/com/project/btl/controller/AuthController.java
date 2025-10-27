@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,27 +26,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// Import thêm Optional
-import java.util.Optional;
-// Import thêm UserDetails (để build thủ công)
-import org.springframework.security.core.userdetails.UserDetails;
-
-
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    // --- SỬA LỖI TIÊM DEPENDENCY ---
-    // Chúng ta dùng constructor injection cho an toàn
-
+    // --- Sử dụng Constructor Injection ---
     final AuthenticationManager authenticationManager;
     final UserRepository userRepository;
     final RoleRepository roleRepository;
     final PasswordEncoder encoder;
     final JwtUtils jwtUtils;
 
-    // Spring sẽ tự động tiêm các Bean này vào constructor
     @Autowired
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
@@ -59,53 +51,35 @@ public class AuthController {
         this.jwtUtils = jwtUtils;
     }
 
-    // --- LOGIC HACK (BỎ QUA KIỂM TRA MẬT KHẨU) ---
+    // --- LOGIC ĐĂNG NHẬP CHUẨN (DÙNG AuthenticationManager) ---
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
-        // Bước 1: Chỉ tìm user bằng Tên đăng nhập
-        Optional<User> userData = userRepository.findByUsername(loginRequest.getUsername());
+        // Bước 1: Gọi AuthenticationManager để xác thực
+        // Nó sẽ tự động gọi UserDetailsService và PasswordEncoder để kiểm tra
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-        // Bước 2: Nếu không tìm thấy User, báo lỗi 401
-        if (userData.isEmpty()) {
-            // Trả về lỗi 401 (Unauthorized)
-            return ResponseEntity.status(401).body(new MessageResponse("Error: User '" + loginRequest.getUsername() + "' not found!"));
-        }
-
-        // Bước 3: Nếu TÌM THẤY USER -> BỎ QUA KIỂM TRA MẬT KHẨU
-        // Lấy user ra
-        User user = userData.get();
-
-        // Bước 4: Tạo token ngay lập tức
-
-        // Tạo UserDetails (Spring Security cần cái này)
-        UserDetails userDetails = UserDetailsImpl.build(user);
-
-        // Tạo Authentication (giả)
-        // Chúng ta tạo một đối tượng xác thực thủ công và đặt nó vào context
-        Authentication authentication = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities());
-
-        // Đưa user vào SecurityContext
+        // Bước 2: Nếu xác thực thành công, lưu vào SecurityContext
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Tạo JWT token từ đối tượng authentication (giả)
+        // Bước 3: Tạo JWT token
         String jwt = jwtUtils.generateJwtToken(authentication);
 
-        // Lấy thông tin user
-        UserDetailsImpl userDetailsImpl = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetailsImpl.getAuthorities().stream()
+        // Bước 4: Lấy thông tin user
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        // Bước 5: Trả về token (Đăng nhập thành công)
+        // Bước 5: Trả về token và thông tin user
         return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetailsImpl.getId(),
-                userDetailsImpl.getUsername(),
-                userDetailsImpl.getEmail(),
+                userDetails.getId(),
+                userDetails.getUsername(),
+                userDetails.getEmail(),
                 roles));
     }
-    // --- KẾT THÚC LOGIC HACK ---
+    // --- KẾT THÚC LOGIC ĐĂNG NHẬP CHUẨN ---
 
 
     @PostMapping("/register")
@@ -124,7 +98,7 @@ public class AuthController {
 
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()), // Vẫn mã hóa mật khẩu khi đăng ký
+                encoder.encode(signUpRequest.getPassword()), // Mã hóa mật khẩu khi đăng ký
                 signUpRequest.getFullName(),
                 signUpRequest.getAddress());
 
@@ -132,17 +106,13 @@ public class AuthController {
         Set<Role> roles = new HashSet<>();
 
         // --- LOGIC GÁN QUYỀN TỰ ĐỘNG ---
-        // Bỏ qua mọi thứ frontend gửi lên, tự check email
-
         if (signUpRequest.getEmail() != null && signUpRequest.getEmail().endsWith("@gymstore.admin")) {
-            // Nếu email có đuôi @gymstore.admin -> Gán ADMIN
             Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                    .orElseThrow(() -> new RuntimeException("Error: Role ADMIN is not found. (DB CHƯA CÓ?)"));
+                    .orElseThrow(() -> new RuntimeException("Error: Role ADMIN is not found."));
             roles.add(adminRole);
         } else {
-            // Mặc định là USER
             Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role USER is not found. (DB CHƯA CÓ?)"));
+                    .orElseThrow(() -> new RuntimeException("Error: Role USER is not found."));
             roles.add(userRole);
         }
         // --- KẾT THÚC LOGIC GÁN QUYỀN ---
