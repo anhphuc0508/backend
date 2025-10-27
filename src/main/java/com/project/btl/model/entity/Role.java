@@ -31,6 +31,5 @@ public class Role {
     )
     private Set<Permission> permissions;
 
-    public void setRoleName(String user) {
-    }
+
 }
