@@ -15,10 +15,19 @@ public class CartController {
     private final CartService cartService;
     @PostMapping("/add")
     public ResponseEntity<CartResponse> addItemToCart(@AuthenticationPrincipal User user , @RequestBody CartItemRequest request){
-// User được lấy từ SecurityContextHolder thông qua @AuthenticationPrincipal (yêu cầu User entity phải implement UserDetails)
         Integer userId = user.getUserId();
         CartResponse updatedCart = cartService.additemtoCart(userId, request);
         return ResponseEntity.ok(updatedCart);
     }
-// (Các API khác như get, update, delete item sẽ được thêm sau)
+    @GetMapping
+    public ResponseEntity<CartResponse> getMyCart(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            // Trường hợp này không nên xảy ra vì đã có .authenticated()
+            return ResponseEntity.status(401).build();
+        }
+
+        Integer userId = user.getUserId(); // [cite: 242]
+        CartResponse cart = cartService.getCart(userId);
+        return ResponseEntity.ok(cart);
+    }
 }

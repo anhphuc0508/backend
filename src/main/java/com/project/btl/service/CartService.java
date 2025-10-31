@@ -4,4 +4,5 @@ import com.project.btl.dto.response.CartResponse;
 import com.project.btl.model.entity.Cart;
 public interface CartService {
     CartResponse additemtoCart(Integer userId, CartItemRequest request);
+    CartResponse getCart(Integer userId);
 }

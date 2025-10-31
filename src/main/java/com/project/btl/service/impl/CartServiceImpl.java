@@ -53,6 +53,13 @@ public class CartServiceImpl implements CartService {
                     return cartRepository.save(newCart);
                 });
     }
+    @Override
+    public CartResponse getCart(Integer userId) {
+        // Tìm giỏ hàng của user (hoặc tạo mới nếu chưa có)
+        Cart cart = findOrCreateCart(userId);
+        // Xây dựng response từ giỏ hàng đó
+        return buildCartResponse(cart);
+    }
     private CartResponse buildCartResponse(Cart cart) {
 // Fix: findById để đảm bảo Cart được load lại (nếu cần)
         Cart updatedCart = cartRepository.findById(cart.getCartId())
