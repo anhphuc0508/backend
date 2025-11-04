@@ -12,5 +12,7 @@ public class ProductResponse {
     private String categoryName;
     private String brandName;
     private List<ProductVariantResponse> variants;
-// Bạn có thể thêm List<ProductImageResponse> ở đây
+    private Double averageRating;
+    private Long totalReviews;
+
 }
