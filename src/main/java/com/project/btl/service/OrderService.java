@@ -1,7 +1,12 @@
 // File: com/project/btl/service/OrderService.java
 package com.project.btl.service;
 import com.project.btl.dto.request.CreateOrderRequest;
+import com.project.btl.dto.response.OrderDetailResponse;
 import com.project.btl.dto.response.OrderResponse;
+import com.project.btl.model.entity.OrderDetail;
+import com.project.btl.model.entity.Product;
+import com.project.btl.model.entity.ProductVariant;
+
 import java.util.List;
 public interface OrderService {
     /**
@@ -23,4 +28,19 @@ public interface OrderService {
     OrderResponse cancelOrder(Integer orderId);
     List<OrderResponse> getAllOrders();
     List<OrderResponse> getOrdersByUserId(Integer userId);
+    private OrderDetailResponse mapEntityToOrderDetailResponse(OrderDetail detail) {
+        ProductVariant variant = detail.getVariant();
+
+        // Cần lấy Product từ Variant để có tên sản phẩm
+        // (Giả định ProductVariant của bạn có link đến Product)
+        Product product = (variant != null) ? variant.getProduct() : null;
+
+        return OrderDetailResponse.builder()
+                .variantId((variant != null) ? variant.getVariantId() : null) // (variantId là giả định)
+                .productName((product != null) ? product.getName() : "Sản phẩm không rõ")
+                .variantName((variant != null) ? variant.getName() : "Biến thể không rõ")
+                .quantity(detail.getQuantity())
+                .priceAtPurchase(detail.getPriceAtPurchase())
+                .build();
+    }
 }

@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/banners/active").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
 
                         // 2. ADMIN APIs – PHẢI ĐẶT TRƯỚC anyRequest()
                         .requestMatchers(HttpMethod.POST, "/api/v1/products").hasAuthority("ROLE_ADMIN")
@@ -69,6 +70,7 @@ public class SecurityConfig {
                         // 3. USER APIs
                         .requestMatchers("/api/v1/orders/**").authenticated()
                         .requestMatchers("/api/v1/cart/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").authenticated()
 
                         // 4. MỌI THỨ CÒN LẠI
                         .anyRequest().authenticated()
