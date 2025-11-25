@@ -50,36 +50,44 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        // 1. PUBLIC
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/banners/active").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+            .cors(withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                    // 1. PUBLIC
+                    .requestMatchers("/api/v1/auth/**").permitAll()
+                    
+                    // --- QUAN TRỌNG: THÊM CÁI NÀY ĐỂ KHỚP VỚI FRONTEND CỦA BẠN ---
+                    .requestMatchers(HttpMethod.GET, "/products/**").permitAll() 
+                    .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+                    // -------------------------------------------------------------
 
-                        // 2. ADMIN APIs – PHẢI ĐẶT TRƯỚC anyRequest()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/v1/banners/admin/**").hasAuthority("ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/v1/banners/active").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
 
-                        // 3. USER APIs
-                        .requestMatchers("/api/v1/orders/**").authenticated()
-                        .requestMatchers("/api/v1/cart/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").authenticated()
+                    // Cho phép method OPTIONS (để trình duyệt hỏi đường trước khi gửi request thật)
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // 4. MỌI THỨ CÒN LẠI
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                    // 2. ADMIN APIs
+                    .requestMatchers(HttpMethod.POST, "/api/v1/products").hasAuthority("ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAuthority("ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAuthority("ROLE_ADMIN")
+                    .requestMatchers("/api/v1/banners/admin/**").hasAuthority("ROLE_ADMIN")
 
-        return http.build();
+                    // 3. USER APIs
+                    .requestMatchers("/api/v1/orders/**").authenticated()
+                    .requestMatchers("/api/v1/cart/**").authenticated()
+                    .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").authenticated()
+
+                    // 4. MỌI THỨ CÒN LẠI
+                    .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+    return http.build();
     }
 
     // Các bean khác giữ nguyên
