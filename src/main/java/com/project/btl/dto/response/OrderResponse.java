@@ -23,4 +23,6 @@ public class OrderResponse {
     private BigDecimal totalAmount;
     private LocalDateTime createdAt;
     private List<OrderDetailResponse> orderDetails;
+    private String shippingPhoneNumber;
+    private String email;
 }

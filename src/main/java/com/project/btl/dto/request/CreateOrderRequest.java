@@ -15,6 +15,7 @@ public class CreateOrderRequest {
     private String shippingFullName;
     @NotBlank(message = "Số điện thoại không được để trống")
     private String shippingPhoneNumber;
+    private String shippingEmail;
     // Địa chỉ giao hàng
     @NotBlank(message = "Địa chỉ không được để trống")
     private String shippingStreet;
